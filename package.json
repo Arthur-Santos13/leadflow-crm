@@ -1,0 +1,29 @@
+{
+    "name": "leadflow-crm",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "backend",
+        "frontend"
+    ],
+    "engines": {
+        "node": "22.2.2"
+    },
+    "scripts": {
+        "dev:backend": "npm run dev --workspace=backend",
+        "dev:frontend": "npm run dev --workspace=frontend",
+        "lint": "eslint .",
+        "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json}\" --ignore-path .prettierignore",
+        "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json}\" --ignore-path .prettierignore"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.9.0",
+        "eslint": "^9.9.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-react-hooks": "^5.1.0",
+        "eslint-plugin-react-refresh": "^0.4.9",
+        "globals": "^15.9.0",
+        "prettier": "^3.3.3",
+        "typescript-eslint": "^8.3.0"
+    }
+}
