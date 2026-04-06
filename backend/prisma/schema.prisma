@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  AGENT
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -99,4 +104,18 @@ model Interaction {
   deal     Deal?     @relation(fields: [dealId], references: [id], onDelete: SetNull)
 
   @@map("interactions")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         UserRole  @default(AGENT)
+  resetToken   String?   @map("reset_token")
+  resetTokenExpires DateTime? @map("reset_token_expires")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
 }
