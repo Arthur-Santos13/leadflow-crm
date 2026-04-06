@@ -3,6 +3,8 @@ import { env } from './config/env';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import authRoutes from './modules/auth/auth.routes';
+import userRoutes from './modules/users/users.routes';
 
 const app = express();
 
@@ -10,6 +12,10 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Rotas
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -21,3 +27,4 @@ app.listen(env.PORT, () => {
 });
 
 export default app;
+
