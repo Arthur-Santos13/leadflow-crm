@@ -30,3 +30,37 @@ enum InteractionType {
   NOTE
   WHATSAPP
 }
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  company   String?
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  leads        Lead[]
+  deals        Deal[]
+  interactions Interaction[]
+
+  @@map("customers")
+}
+
+model Lead {
+  id         String     @id @default(uuid())
+  title      String
+  status     LeadStatus @default(NEW)
+  source     String?
+  notes      String?
+  customerId String     @map("customer_id")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  deals        Deal[]
+  interactions Interaction[]
+
+  @@map("leads")
+}
