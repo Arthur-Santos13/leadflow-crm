@@ -64,3 +64,39 @@ model Lead {
 
   @@map("leads")
 }
+
+model Deal {
+  id         String    @id @default(uuid())
+  title      String
+  stage      DealStage @default(PROSPECTING)
+  value      Decimal?  @db.Decimal(12, 2)
+  expectedAt DateTime? @map("expected_at")
+  closedAt   DateTime? @map("closed_at")
+  customerId String    @map("customer_id")
+  leadId     String?   @map("lead_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  interactions Interaction[]
+
+  @@map("deals")
+}
+
+model Interaction {
+  id         String          @id @default(uuid())
+  type       InteractionType
+  content    String
+  customerId String          @map("customer_id")
+  leadId     String?         @map("lead_id")
+  dealId     String?         @map("deal_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  deal     Deal?     @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@map("interactions")
+}
