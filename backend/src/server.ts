@@ -1,10 +1,10 @@
 import 'dotenv/config';
+import { env } from './config/env';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
 const app = express();
-const PORT = process.env.PORT ?? 3333;
 
 // Middlewares de segurança e parsing
 app.use(helmet());
@@ -13,11 +13,11 @@ app.use(express.json());
 
 // Health check
 app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', env: env.NODE_ENV, timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(env.PORT, () => {
+    console.log(`Server running on http://localhost:${env.PORT} [${env.NODE_ENV}]`);
 });
 
 export default app;
