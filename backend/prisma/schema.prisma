@@ -6,3 +6,27 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  UNQUALIFIED
+  CONVERTED
+}
+
+enum DealStage {
+  PROSPECTING
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum InteractionType {
+  EMAIL
+  CALL
+  MEETING
+  NOTE
+  WHATSAPP
+}
