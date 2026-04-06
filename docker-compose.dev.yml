@@ -1,0 +1,35 @@
+services:
+  # ── Apenas o banco em modo dev ──────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: leadflow_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-leadflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-leadflow_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-leadflow_dev}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-leadflow}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: leadflow_pgadmin_dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@leadflow.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - '${PGADMIN_PORT:-5050}:80'
+
+volumes:
+  postgres_dev_data:
