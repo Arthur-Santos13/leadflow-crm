@@ -30,57 +30,53 @@ export async function list(req: Request, res: Response) {
     const filters = parseFilters(req, ['title', 'source', 'createdAt']);
     const statusParam = req.query.status as LeadStatus | undefined;
     const customerIdParam = req.query.customerId as string | undefined;
+    const sourceParam = req.query.source as string | undefined;
 
     const { data, total } = await LeadsService.listLeads(
         pagination,
-        { search: filters.search, status: statusParam, customerId: customerIdParam },
-        filters.sort as { field: string; order: 'asc' | 'desc' }
-    );
-    res.json(paginatedResponse(data, buildPaginationMeta(total, pagination)));
-}
-
+        { search: filters.search, status: statusParam, customerId: customerIdParam, source: sourceParam },
 export async function getOne(req: Request, res: Response) {
-    const lead = await LeadsService.getLeadById(req.params.id);
-    if (!lead) {
-        res.status(404).json(errorResponse('Lead not found'));
-        return;
-    }
-    res.json(successResponse(lead));
-}
-
-export async function update(req: Request, res: Response) {
-    const parsed = updateLeadSchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json(errorResponse('Validation error', parsed.error.flatten().fieldErrors));
-        return;
-    }
-    try {
-        const lead = await LeadsService.updateLead(req.params.id, parsed.data);
+        const lead = await LeadsService.getLeadById(req.params.id);
+        if (!lead) {
+            res.status(404).json(errorResponse('Lead not found'));
+            return;
+        }
         res.json(successResponse(lead));
-    } catch {
-        res.status(404).json(errorResponse('Lead not found'));
     }
-}
 
-export async function updateStatus(req: Request, res: Response) {
-    const parsed = updateLeadStatusSchema.safeParse(req.body);
-    if (!parsed.success) {
-        res.status(400).json(errorResponse('Validation error', parsed.error.flatten().fieldErrors));
-        return;
+    export async function update(req: Request, res: Response) {
+        const parsed = updateLeadSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json(errorResponse('Validation error', parsed.error.flatten().fieldErrors));
+            return;
+        }
+        try {
+            const lead = await LeadsService.updateLead(req.params.id, parsed.data);
+            res.json(successResponse(lead));
+        } catch {
+            res.status(404).json(errorResponse('Lead not found'));
+        }
     }
-    try {
-        const lead = await LeadsService.updateLeadStatus(req.params.id, parsed.data.status);
-        res.json(successResponse(lead));
-    } catch {
-        res.status(404).json(errorResponse('Lead not found'));
-    }
-}
 
-export async function remove(req: Request, res: Response) {
-    try {
-        await LeadsService.deleteLead(req.params.id);
-        res.status(204).send();
-    } catch {
-        res.status(404).json(errorResponse('Lead not found'));
+    export async function updateStatus(req: Request, res: Response) {
+        const parsed = updateLeadStatusSchema.safeParse(req.body);
+        if (!parsed.success) {
+            res.status(400).json(errorResponse('Validation error', parsed.error.flatten().fieldErrors));
+            return;
+        }
+        try {
+            const lead = await LeadsService.updateLeadStatus(req.params.id, parsed.data.status);
+            res.json(successResponse(lead));
+        } catch {
+            res.status(404).json(errorResponse('Lead not found'));
+        }
     }
-}
+
+    export async function remove(req: Request, res: Response) {
+        try {
+            await LeadsService.deleteLead(req.params.id);
+            res.status(204).send();
+        } catch {
+            res.status(404).json(errorResponse('Lead not found'));
+        }
+    }
