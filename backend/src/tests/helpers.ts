@@ -11,4 +11,4 @@ export function makeToken(payload: { id?: string; role?: string } = {}): string 
 }
 
 export const adminToken = makeToken({ id: 'admin-user-id', role: 'ADMIN' });
-export const userToken = makeToken({ id: 'regular-user-id', role: 'USER' });
+export const userToken = makeToken({ id: 'regular-user-id', role: 'AGENT' });
