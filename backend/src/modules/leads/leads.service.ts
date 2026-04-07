@@ -51,7 +51,12 @@ export async function updateLead(id: string, data: UpdateLeadInput) {
 }
 
 export async function updateLeadStatus(id: string, status: LeadStatus) {
-    return prisma.lead.update({ where: { id }, data: { status } });
+    const lead = await prisma.lead.findUnique({ where: { id } });
+    if (!lead) {
+        const err = new Error('Lead not found');
+        (err as NodeJS.ErrnoException).code = 'NOT_FOUND';
+        throw err;
+    }
 }
 
 export async function deleteLead(id: string) {
