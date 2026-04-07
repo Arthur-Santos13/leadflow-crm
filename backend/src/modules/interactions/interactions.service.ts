@@ -43,12 +43,14 @@ export async function listInteractions(
         ...(filters.dealId && { dealId: filters.dealId }),
         ...(filters.type && { type: filters.type }),
     };
+    const allowedSortFields = ['createdAt', 'type'];
+    const sortField = allowedSortFields.includes(sort.field) ? sort.field : 'createdAt';
     const [data, total] = await Promise.all([
         prisma.interaction.findMany({
             where,
             skip: pagination.skip,
             take: pagination.take,
-            orderBy: { [sort.field]: sort.order },
+            orderBy: { [sortField]: sort.order },
             include: {
                 customer: { select: { id: true, name: true } },
                 lead: { select: { id: true, title: true } },

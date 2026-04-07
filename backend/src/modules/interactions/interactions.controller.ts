@@ -3,6 +3,7 @@ import { InteractionType } from '@prisma/client';
 import * as InteractionsService from './interactions.service';
 import { createInteractionSchema } from './interactions.schema';
 import { parsePagination, buildPaginationMeta } from '../../shared/pagination';
+import { parseFilters } from '../../shared/filters';
 import { successResponse, paginatedResponse, errorResponse } from '../../shared/apiResponse';
 
 export async function create(req: Request, res: Response) {
@@ -26,6 +27,7 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const pagination = parsePagination(req);
+    const filters = parseFilters(req, ['createdAt', 'type']);
     const typeParam = req.query.type as string | undefined;
     const validTypes = Object.values(InteractionType);
     const type = typeParam && validTypes.includes(typeParam as InteractionType)
@@ -37,7 +39,8 @@ export async function list(req: Request, res: Response) {
 
     const { data, total } = await InteractionsService.listInteractions(
         pagination,
-        { customerId: customerIdParam, leadId: leadIdParam, dealId: dealIdParam, type }
+        { customerId: customerIdParam, leadId: leadIdParam, dealId: dealIdParam, type },
+        filters.sort as { field: string; order: 'asc' | 'desc' }
     );
     res.json(paginatedResponse(data, buildPaginationMeta(total, pagination)));
 }
