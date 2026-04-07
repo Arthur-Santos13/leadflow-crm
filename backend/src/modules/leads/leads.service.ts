@@ -60,5 +60,10 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
 }
 
 export async function deleteLead(id: string) {
-    await prisma.lead.delete({ where: { id } });
+    const dealsCount = await prisma.deal.count({ where: { leadId: id } });
+    if (dealsCount > 0) {
+        const err = new Error(`Cannot delete lead with ${dealsCount} deal(s) attached`);
+        (err as NodeJS.ErrnoException).code = 'HAS_RELATIONS';
+        throw err;
+    }
 }
