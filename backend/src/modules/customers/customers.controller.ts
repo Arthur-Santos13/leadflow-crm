@@ -53,16 +53,12 @@ export async function update(req: Request, res: Response) {
     try {
         const customer = await CustomersService.updateCustomer(req.params.id, parsed.data);
         res.json(successResponse(customer));
-    } catch {
-        res.status(404).json(errorResponse('Customer not found'));
-    }
-}
-
-export async function remove(req: Request, res: Response) {
-    try {
-        await CustomersService.deleteCustomer(req.params.id);
-        res.status(204).send();
-    } catch {
+    } catch (err: unknown) {
+        const e = err as NodeJS.ErrnoException;
+        if (e.code === 'EMAIL_TAKEN') {
+            res.status(409).json(errorResponse(e.message));
+            return;
+        }
         res.status(404).json(errorResponse('Customer not found'));
     }
 }
