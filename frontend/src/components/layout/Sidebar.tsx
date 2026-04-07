@@ -1,9 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Target, Kanban, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, Target, Kanban, LogOut, Sun, Moon, ShieldCheck } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 
-const navItems = [
+const baseNavItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/customers', icon: Users, label: 'Customers' },
     { to: '/leads', icon: Target, label: 'Leads' },
@@ -14,6 +14,10 @@ export default function Sidebar() {
     const { theme, toggleTheme } = useTheme();
     const { logout, user } = useAuth();
     const navigate = useNavigate();
+    const isAdmin = user?.role === 'ADMIN';
+    const navItems = isAdmin
+        ? [...baseNavItems, { to: '/users', icon: ShieldCheck, label: 'Users' }]
+        : baseNavItems;
 
     const handleLogout = () => {
         logout();

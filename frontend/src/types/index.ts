@@ -56,3 +56,14 @@ export interface Deal {
     createdAt: string;
     updatedAt: string;
 }
+
+export type UserRole = 'ADMIN' | 'AGENT';
+
+export interface AppUser {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    createdAt: string;
+    updatedAt: string;
+}
