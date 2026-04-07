@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { usersService } from '../services/users.service';
+import { listUsers, updateUserRole } from '../services/users.service';
 import type { AppUser, UserRole } from '../types';
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -22,7 +22,7 @@ export default function UsersPage() {
     const [toast, setToast] = useState('');
 
     useEffect(() => {
-        usersService.list()
+        listUsers()
             .then(setUsers)
             .catch(() => setError('Failed to load users.'))
             .finally(() => setLoading(false));
@@ -36,7 +36,7 @@ export default function UsersPage() {
     const handleRoleChange = async (userId: string, newRole: UserRole) => {
         setUpdating(userId);
         try {
-            const updated = await usersService.updateRole(userId, newRole);
+            const updated = await updateUserRole(userId, newRole);
             setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
             showToast('Role updated successfully.');
         } catch {
