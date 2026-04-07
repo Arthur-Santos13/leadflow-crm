@@ -36,12 +36,14 @@ export async function listDeals(
         ...(filters.customerId && { customerId: filters.customerId }),
         ...(filters.leadId && { leadId: filters.leadId }),
     };
+    const allowedSortFields = ['createdAt', 'title', 'value', 'expectedAt'];
+    const sortField = allowedSortFields.includes(sort.field) ? sort.field : 'createdAt';
     const [data, total] = await Promise.all([
         prisma.deal.findMany({
             where,
             skip: pagination.skip,
             take: pagination.take,
-            orderBy: { [sort.field]: sort.order },
+            orderBy: { [sortField]: sort.order },
             include: {
                 customer: { select: { id: true, name: true, email: true } },
                 lead: { select: { id: true, title: true, status: true } },
