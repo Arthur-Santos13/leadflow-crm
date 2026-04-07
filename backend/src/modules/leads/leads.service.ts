@@ -16,7 +16,7 @@ export async function createLead(data: CreateLeadInput) {
 
 export async function listLeads(
     pagination: PaginationParams,
-    filters: { search?: string; status?: LeadStatus; customerId?: string },
+    filters: { search?: string; status?: LeadStatus; customerId?: string; source?: string },
     sort = { field: 'createdAt', order: 'desc' as const }
 ) {
     const searchWhere = buildSearchWhere(filters.search, ['title', 'source', 'notes']);
@@ -24,6 +24,7 @@ export async function listLeads(
         ...searchWhere,
         ...(filters.status && { status: filters.status }),
         ...(filters.customerId && { customerId: filters.customerId }),
+        ...(filters.source && { source: { contains: filters.source, mode: 'insensitive' as const } }),
     };
     const [data, total] = await Promise.all([
         prisma.lead.findMany({
