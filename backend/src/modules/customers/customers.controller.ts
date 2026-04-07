@@ -62,3 +62,17 @@ export async function update(req: Request, res: Response) {
         res.status(404).json(errorResponse('Customer not found'));
     }
 }
+
+export async function remove(req: Request, res: Response) {
+    try {
+        await CustomersService.deleteCustomer(req.params.id);
+        res.status(204).send();
+    } catch (err: unknown) {
+        const e = err as NodeJS.ErrnoException;
+        if (e.code === 'HAS_RELATIONS') {
+            res.status(409).json(errorResponse(e.message ?? 'Customer has related records'));
+            return;
+        }
+        res.status(404).json(errorResponse('Customer not found'));
+    }
+}

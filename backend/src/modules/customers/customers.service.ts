@@ -49,5 +49,15 @@ export async function updateCustomer(id: string, data: UpdateCustomerInput) {
 }
 
 export async function deleteCustomer(id: string) {
-    await prisma.customer.delete({ where: { id } });
+    const [leadsCount, dealsCount] = await Promise.all([
+        prisma.lead.count({ where: { customerId: id } }),
+        prisma.deal.count({ where: { customerId: id } }),
+    ]);
+    if (leadsCount > 0 || dealsCount > 0) {
+        const err = new Error(
+            `Cannot delete customer with ${leadsCount} lead(s) and ${dealsCount} deal(s)`
+        );
+        (err as NodeJS.ErrnoException).code = 'HAS_RELATIONS';
+        throw err;
+    }
 }
