@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Target, Kanban, LogOut, Sun, Moon, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Target, Kanban, LogOut, Sun, Moon, ShieldCheck, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -10,7 +10,12 @@ const baseNavItems = [
     { to: '/pipeline', icon: Kanban, label: 'Pipeline' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+    open?: boolean;
+    onClose?: () => void;
+}
+
+export default function Sidebar({ open = false, onClose }: SidebarProps) {
     const { theme, toggleTheme } = useTheme();
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -25,11 +30,20 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="w-60 shrink-0 h-screen sticky top-0 flex flex-col bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A2A]">
+        <aside className={`w-60 shrink-0 h-screen flex flex-col bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A2A] transition-transform duration-300 fixed inset-y-0 left-0 z-40 md:static md:z-auto md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
             {/* Logo */}
-            <div className="px-6 py-5 border-b border-gray-100 dark:border-[#2A2A2A]">
-                <span className="text-xl font-bold text-[#E50914] tracking-tight">LeadFlow</span>
-                <span className="block text-xs text-gray-400 dark:text-gray-600 mt-0.5 uppercase tracking-widest">CRM</span>
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center justify-between">
+                <div>
+                    <span className="text-xl font-bold text-[#E50914] tracking-tight">LeadFlow</span>
+                    <span className="block text-xs text-gray-400 dark:text-gray-600 mt-0.5 uppercase tracking-widest">CRM</span>
+                </div>
+                <button
+                    onClick={onClose}
+                    className="md:hidden p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-colors"
+                    aria-label="Close sidebar"
+                >
+                    <X size={18} />
+                </button>
             </div>
 
             {/* User info */}
@@ -51,6 +65,7 @@ export default function Sidebar() {
                     <NavLink
                         key={to}
                         to={to}
+                        onClick={onClose}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive
                                 ? 'bg-red-50 dark:bg-[#2A0A0A] text-[#E50914]'
