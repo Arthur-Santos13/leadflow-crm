@@ -65,6 +65,12 @@ export async function getDealById(id: string) {
 }
 
 export async function updateDeal(id: string, data: UpdateDealInput) {
+    const deal = await prisma.deal.findUnique({ where: { id } });
+    if (!deal) {
+        const err = new Error('Deal not found');
+        (err as NodeJS.ErrnoException).code = 'NOT_FOUND';
+        throw err;
+    }
     return prisma.deal.update({ where: { id }, data });
 }
 
