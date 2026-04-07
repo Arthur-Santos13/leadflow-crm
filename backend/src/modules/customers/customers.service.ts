@@ -36,7 +36,16 @@ export async function getCustomerById(id: string) {
 }
 
 export async function updateCustomer(id: string, data: UpdateCustomerInput) {
-    return prisma.customer.update({ where: { id }, data });
+    if (data.email) {
+        const conflict = await prisma.customer.findFirst({
+            where: { email: data.email, NOT: { id } },
+        });
+        if (conflict) {
+            const err = new Error('Email already in use');
+            (err as NodeJS.ErrnoException).code = 'EMAIL_TAKEN';
+            throw err;
+        }
+    }
 }
 
 export async function deleteCustomer(id: string) {
