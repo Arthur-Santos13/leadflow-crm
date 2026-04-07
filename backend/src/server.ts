@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
+import customersRoutes from './modules/customers/customers.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/customers', customersRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
