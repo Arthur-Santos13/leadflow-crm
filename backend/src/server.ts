@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
+import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
 
@@ -21,6 +22,9 @@ app.use('/api/users', userRoutes);
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', env: env.NODE_ENV, timestamp: new Date().toISOString() });
 });
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT} [${env.NODE_ENV}]`);
