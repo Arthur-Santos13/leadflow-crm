@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -13,7 +15,7 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
         try {
-            // Wired to API in feat(frontend): configure axios with JWT interceptor
+            await login(email, password);
             navigate('/dashboard');
         } catch {
             setError('Invalid email or password.');
