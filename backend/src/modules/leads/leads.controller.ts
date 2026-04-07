@@ -67,16 +67,12 @@ export async function getOne(req: Request, res: Response) {
         try {
             const lead = await LeadsService.updateLeadStatus(req.params.id, parsed.data.status);
             res.json(successResponse(lead));
-        } catch {
-            res.status(404).json(errorResponse('Lead not found'));
-        }
-    }
-
-    export async function remove(req: Request, res: Response) {
-        try {
-            await LeadsService.deleteLead(req.params.id);
-            res.status(204).send();
-        } catch {
-            res.status(404).json(errorResponse('Lead not found'));
+        } catch (err: unknown) {
+            const e = err as NodeJS.ErrnoException;
+            if (e.code === 'NOT_FOUND') {
+                res.status(404).json(errorResponse('Lead not found'));
+                return;
+            }
+            res.status(500).json(errorResponse('Internal server error'));
         }
     }
