@@ -62,8 +62,13 @@ export async function update(req: Request, res: Response) {
     try {
         const deal = await DealsService.updateDeal(req.params.id, parsed.data);
         res.json(successResponse(deal));
-    } catch {
-        res.status(404).json(errorResponse('Deal not found'));
+    } catch (err: unknown) {
+        const e = err as NodeJS.ErrnoException;
+        if (e.code === 'NOT_FOUND') {
+            res.status(404).json(errorResponse('Deal not found'));
+            return;
+        }
+        res.status(500).json(errorResponse('Internal server error'));
     }
 }
 
