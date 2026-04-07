@@ -27,14 +27,18 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const pagination = parsePagination(req);
-    const filters = parseFilters(req, ['title', 'value', 'createdAt']);
-    const stageParam = req.query.stage as DealStage | undefined;
+    const filters = parseFilters(req, ['title', 'value', 'createdAt', 'expectedAt']);
+    const stageParam = req.query.stage as string | undefined;
+    const validStages = Object.values(DealStage);
+    const stage = stageParam && validStages.includes(stageParam as DealStage)
+        ? (stageParam as DealStage)
+        : undefined;
     const customerIdParam = req.query.customerId as string | undefined;
     const leadIdParam = req.query.leadId as string | undefined;
 
     const { data, total } = await DealsService.listDeals(
         pagination,
-        { search: filters.search, stage: stageParam, customerId: customerIdParam, leadId: leadIdParam },
+        { search: filters.search, stage, customerId: customerIdParam, leadId: leadIdParam },
         filters.sort as { field: string; order: 'asc' | 'desc' }
     );
     res.json(paginatedResponse(data, buildPaginationMeta(total, pagination)));
