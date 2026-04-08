@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, Target, Kanban, TrendingUp } from 'lucide-react';
+import { Users, Target, Kanban, TrendingUp, TrendingDown } from 'lucide-react';
 import { listCustomers } from '../services/customers.service';
 import { listLeads } from '../services/leads.service';
 import { listDeals } from '../services/deals.service';
@@ -49,14 +49,14 @@ export default function DashboardPage() {
                 const [cRes, lRes, dRes] = await Promise.all([
                     listCustomers({ perPage: 1 }),
                     listLeads({ perPage: 5, order: 'desc', sortBy: 'createdAt' }),
-                    listDeals({ perPage: 100 }),
+                    listDeals({ perPage: 100, sortBy: 'updatedAt', order: 'desc' }),
                 ]);
 
                 const allDeals = dRes.data ?? [];
                 const openDeals = allDeals.filter(d => d.stage !== 'CLOSED_LOST');
-                const revenue = allDeals
-                    .filter(d => d.stage === 'CLOSED_WON')
-                    .reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
+                const won = allDeals.filter(d => d.stage === 'CLOSED_WON').reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
+                const lost = allDeals.filter(d => d.stage === 'CLOSED_LOST').reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
+                const revenue = won - lost;
 
                 setStats({
                     customers: cRes.meta.total,
@@ -93,9 +93,9 @@ export default function DashboardPage() {
                 <KpiCard label="Leads" value={stats.leads} icon={<Target size={20} />} />
                 <KpiCard label="Open Deals" value={stats.openDeals} icon={<Kanban size={20} />} />
                 <KpiCard
-                    label="Revenue (Won)"
+                    label="Revenue"
                     value={stats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    icon={<TrendingUp size={20} />}
+                    icon={stats.revenue >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                 />
             </div>
 
@@ -133,7 +133,12 @@ export default function DashboardPage() {
                             {recentDeals.map(deal => (
                                 <li key={deal.id} className="flex items-center justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{deal.title}</p>
+                                        <p className={`text-sm truncate ${deal.stage === 'CLOSED_WON'
+                                                ? 'font-bold text-green-600 dark:text-green-400'
+                                                : deal.stage === 'CLOSED_LOST'
+                                                    ? 'font-medium text-gray-400 dark:text-gray-500 line-through'
+                                                    : 'font-medium text-gray-800 dark:text-white'
+                                            }`}>{deal.title}</p>
                                         <p className="text-xs text-gray-400 dark:text-gray-600 truncate">{deal.customer?.name ?? deal.customerId}</p>
                                     </div>
                                     <div className="text-right shrink-0">
