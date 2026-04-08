@@ -6,6 +6,7 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import { Select, FormField, Textarea, Pagination } from '../components/ui/Form';
 import { listLeads, createLead, updateLead, updateLeadStatus, deleteLead } from '../services/leads.service';
+import { useDebounce } from '../hooks/useDebounce';
 import type { Lead } from '../types';
 
 const STATUS_OPTIONS = [
@@ -33,6 +34,9 @@ export default function LeadsPage() {
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState<Lead['status'] | ''>('');
     const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(search);
+
+    useEffect(() => { setPage(1); }, [debouncedSearch, filterStatus]);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState<Lead | null>(null);
@@ -52,7 +56,7 @@ export default function LeadsPage() {
             const res = await listLeads({
                 page,
                 perPage: 15,
-                search: search || undefined,
+                search: debouncedSearch || undefined,
                 status: filterStatus || undefined,
             });
             setData(res.data ?? []);
@@ -60,7 +64,7 @@ export default function LeadsPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, search, filterStatus]);
+    }, [page, debouncedSearch, filterStatus]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -172,13 +176,13 @@ export default function LeadsPage() {
                         type="text"
                         placeholder="Search leads..."
                         value={search}
-                        onChange={e => { setSearch(e.target.value); setPage(1); }}
+                        onChange={e => setSearch(e.target.value)}
                         className="pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#333] bg-white dark:bg-[#141414] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:border-transparent"
                     />
                 </div>
                 <select
                     value={filterStatus}
-                    onChange={e => { setFilterStatus(e.target.value as Lead['status'] | ''); setPage(1); }}
+                    onChange={e => { setFilterStatus(e.target.value as Lead['status'] | ''); }}
                     className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#333] bg-white dark:bg-[#141414] text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:border-transparent"
                 >
                     <option value="">All statuses</option>
