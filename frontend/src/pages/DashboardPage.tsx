@@ -53,10 +53,8 @@ export default function DashboardPage() {
                 ]);
 
                 const allDeals = dRes.data ?? [];
-                const openDeals = allDeals.filter(d => d.stage !== 'CLOSED_LOST');
-                const won = allDeals.filter(d => d.stage === 'CLOSED_WON').reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
-                const lost = allDeals.filter(d => d.stage === 'CLOSED_LOST').reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
-                const revenue = won - lost;
+                const openDeals = allDeals.filter(d => d.stage !== 'CLOSED_LOST' && d.stage !== 'CLOSED_WON');
+                const revenue = allDeals.filter(d => d.stage === 'CLOSED_WON').reduce((acc, d) => acc + (d.value ? Number(d.value) : 0), 0);
 
                 setStats({
                     customers: cRes.meta.total,
