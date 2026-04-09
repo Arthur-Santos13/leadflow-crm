@@ -97,7 +97,7 @@ NODE_ENV=development
 PORT=3333
 DATABASE_URL=postgresql://leadflow:leadflow_pass@localhost:5436/leadflow_dev
 JWT_SECRET=change_this_to_a_long_random_string_32chars
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=3d
 ```
 
 **4. Run database migrations**
@@ -154,7 +154,7 @@ Services:
 |---|---|---|---|
 | `DATABASE_URL` | ✅ | — | PostgreSQL connection string |
 | `JWT_SECRET` | ✅ | — | Secret key for signing JWTs (min 16 chars) |
-| `JWT_EXPIRES_IN` | ❌ | `7d` | JWT expiration time |
+| `JWT_EXPIRES_IN` | ❌ | `3d` | JWT expiration time |
 | `PORT` | ❌ | `3333` | Backend server port |
 | `NODE_ENV` | ❌ | `development` | Environment mode |
 
