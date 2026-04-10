@@ -14,13 +14,13 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, icon, sub }: KpiCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1F1F1F] rounded-2xl border border-gray-100 dark:border-[#2A2A2A] p-5 flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-red-50 dark:bg-[#2A0A0A] flex items-center justify-center text-[#E50914] shrink-0">
+        <div className="bg-white dark:bg-[#1F1F1F] rounded-2xl border border-gray-100 dark:border-[#2A2A2A] p-4 sm:p-5 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-red-50 dark:bg-[#2A0A0A] flex items-center justify-center text-[#E50914] shrink-0">
                 {icon}
             </div>
-            <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">{value}</p>
+            <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{label}</p>
+                <p className="text-base sm:text-2xl font-bold text-gray-900 dark:text-white mt-0.5 whitespace-nowrap">{value}</p>
                 {sub && <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">{sub}</p>}
             </div>
         </div>
@@ -132,10 +132,10 @@ export default function DashboardPage() {
                                 <li key={deal.id} className="flex items-center justify-between gap-3">
                                     <div className="min-w-0">
                                         <p className={`text-sm truncate ${deal.stage === 'CLOSED_WON'
-                                                ? 'font-bold text-green-600 dark:text-green-400'
-                                                : deal.stage === 'CLOSED_LOST'
-                                                    ? 'font-medium text-gray-400 dark:text-gray-500 line-through'
-                                                    : 'font-medium text-gray-800 dark:text-white'
+                                            ? 'font-bold text-green-600 dark:text-green-400'
+                                            : deal.stage === 'CLOSED_LOST'
+                                                ? 'font-medium text-gray-400 dark:text-gray-500 line-through'
+                                                : 'font-medium text-gray-800 dark:text-white'
                                             }`}>{deal.title}</p>
                                         <p className="text-xs text-gray-400 dark:text-gray-600 truncate">{deal.customer?.name ?? deal.customerId}</p>
                                     </div>
