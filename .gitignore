@@ -33,6 +33,10 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+frontend/tailwind.config.js
+frontend/tailwind.config.d.ts
 
 # package locks (não commitar em monorepo)
 package-lock.json
