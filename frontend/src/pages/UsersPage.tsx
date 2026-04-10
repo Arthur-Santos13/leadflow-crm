@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { listUsers, updateUserRole } from '../services/users.service';
 import type { AppUser, UserRole } from '../types';
@@ -20,6 +21,7 @@ export default function UsersPage() {
     const [error, setError] = useState('');
     const [updating, setUpdating] = useState<string | null>(null);
     const [toast, setToast] = useState('');
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
         listUsers()
@@ -38,6 +40,7 @@ export default function UsersPage() {
         try {
             const updated = await updateUserRole(userId, newRole);
             setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
+            setExpandedId(null);
             showToast('Role updated successfully.');
         } catch {
             showToast('Failed to update role.');
@@ -45,6 +48,12 @@ export default function UsersPage() {
             setUpdating(null);
         }
     };
+
+    const sortedUsers = [...users].sort((a, b) => {
+        if (a.id === me?.id) return -1;
+        if (b.id === me?.id) return 1;
+        return 0;
+    });
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
@@ -71,67 +80,80 @@ export default function UsersPage() {
             <div className="bg-white dark:bg-[#1F1F1F] rounded-2xl border border-gray-200 dark:border-[#2A2A2A] overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-sm text-gray-400">Loading...</div>
-                ) : users.length === 0 ? (
+                ) : sortedUsers.length === 0 ? (
                     <div className="p-8 text-center text-sm text-gray-400">No users found.</div>
                 ) : (
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-gray-100 dark:border-[#2A2A2A]">
-                                <th className="px-5 py-3.5 text-left font-medium text-gray-500 dark:text-gray-400">User</th>
-                                <th className="px-5 py-3.5 text-left font-medium text-gray-500 dark:text-gray-400">Email</th>
-                                <th className="px-5 py-3.5 text-left font-medium text-gray-500 dark:text-gray-400">Current role</th>
-                                <th className="px-5 py-3.5 text-left font-medium text-gray-500 dark:text-gray-400">Change role</th>
-                                <th className="px-5 py-3.5 text-left font-medium text-gray-500 dark:text-gray-400">Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-[#2A2A2A]">
-                            {users.map(u => {
-                                const isSelf = u.id === me?.id;
-                                return (
-                                    <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors">
-                                        <td className="px-5 py-3.5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-[#E50914] flex items-center justify-center text-white font-semibold shrink-0">
-                                                    {u.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900 dark:text-white">{u.name}</p>
-                                                    {isSelf && (
-                                                        <p className="text-xs text-gray-400">You</p>
-                                                    )}
-                                                </div>
+                    <ul className="divide-y divide-gray-100 dark:divide-[#2A2A2A]">
+                        {sortedUsers.map(u => {
+                            const isSelf = u.id === me?.id;
+                            const isExpanded = expandedId === u.id;
+                            return (
+                                <li key={u.id}>
+                                    {/* Row */}
+                                    <div
+                                        className={`flex items-center gap-3 px-4 py-3.5 transition-colors ${!isSelf ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525]' : ''}`}
+                                        onClick={() => {
+                                            if (!isSelf) setExpandedId(prev => prev === u.id ? null : u.id);
+                                        }}
+                                    >
+                                        {/* Avatar */}
+                                        <div className="w-9 h-9 rounded-full bg-[#E50914] flex items-center justify-center text-white font-semibold shrink-0">
+                                            {u.name.charAt(0).toUpperCase()}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">{u.name}</span>
+                                                {isSelf && (
+                                                    <span className="text-xs text-gray-400">(You)</span>
+                                                )}
+                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGE[u.role]}`}>
+                                                    {ROLE_LABELS[u.role]}
+                                                </span>
                                             </div>
-                                        </td>
-                                        <td className="px-5 py-3.5 text-gray-600 dark:text-gray-400">{u.email}</td>
-                                        <td className="px-5 py-3.5">
-                                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGE[u.role]}`}>
-                                                {ROLE_LABELS[u.role]}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3.5">
-                                            {isSelf ? (
-                                                <span className="text-xs text-gray-400 italic">Cannot change own role</span>
-                                            ) : updating === u.id ? (
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{u.email}</p>
+                                        </div>
+
+                                        {/* Chevron */}
+                                        {!isSelf && (
+                                            <div className="shrink-0 text-gray-400">
+                                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Expanded role selector */}
+                                    {isExpanded && (
+                                        <div className="px-4 pb-4 pt-1 bg-gray-50 dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-[#2A2A2A]">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2.5">Change role for <span className="font-medium text-gray-700 dark:text-gray-300">{u.name}</span>:</p>
+                                            {updating === u.id ? (
                                                 <span className="text-xs text-gray-400">Saving...</span>
                                             ) : (
-                                                <select
-                                                    value={u.role}
-                                                    onChange={e => handleRoleChange(u.id, e.target.value as UserRole)}
-                                                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#333] bg-white dark:bg-[#141414] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#E50914]"
-                                                >
-                                                    <option value="AGENT">Agent</option>
-                                                    <option value="ADMIN">Admin</option>
-                                                </select>
+                                                <div className="flex gap-2">
+                                                    {(['ADMIN', 'AGENT'] as UserRole[]).map(role => (
+                                                        <button
+                                                            key={role}
+                                                            onClick={e => {
+                                                                e.stopPropagation();
+                                                                if (u.role !== role) handleRoleChange(u.id, role);
+                                                            }}
+                                                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${u.role === role
+                                                                    ? 'bg-[#E50914] text-white cursor-default'
+                                                                    : 'bg-white dark:bg-[#2A2A2A] border border-gray-200 dark:border-[#333] text-gray-700 dark:text-gray-300 hover:border-[#E50914] hover:text-[#E50914]'
+                                                                }`}
+                                                        >
+                                                            {ROLE_LABELS[role]}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             )}
-                                        </td>
-                                        <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">
-                                            {new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 )}
             </div>
         </div>
