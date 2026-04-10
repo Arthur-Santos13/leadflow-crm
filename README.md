@@ -2,6 +2,13 @@
 
 A full-stack CRM application for managing customers, leads, and sales pipelines. Built with a REST API backend and a responsive React frontend.
 
+**Live demo:** [leadflow-crm-frontend.vercel.app](https://leadflow-crm-frontend.vercel.app)
+
+| Role | Email | Password |
+|---|---|---|
+| ADMIN | `alice@leadflow.com` | `password123` |
+| AGENT | `bob@leadflow.com` | `password123` |
+
 ---
 
 ## Tech Stack
@@ -10,7 +17,7 @@ A full-stack CRM application for managing customers, leads, and sales pipelines.
 |---|---|
 | **Backend** | Node.js, Express, TypeScript, Prisma ORM, PostgreSQL, Zod, JWT, bcryptjs |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, React Router v7, Axios, Lucide React |
-| **Infrastructure** | Docker, Docker Compose, Nginx (production) |
+| **Infrastructure** | Docker, Docker Compose, Nginx · Vercel (frontend + API) · Neon (PostgreSQL serverless) |
 | **Testing** | Vitest, Supertest |
 
 ---
@@ -135,7 +142,36 @@ npm run dev
 
 ---
 
-### Production (Docker)
+### Production (Vercel + Neon)
+
+The app is deployed on Vercel with a Neon serverless PostgreSQL database.
+
+- **Frontend + API:** [leadflow-crm-frontend.vercel.app](https://leadflow-crm-frontend.vercel.app)
+- **Database:** [neon.tech](https://neon.tech)
+
+Required environment variables in Vercel:
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Neon pooled connection string |
+| `DATABASE_URL_UNPOOLED` | Neon direct connection string (for migrations) |
+| `JWT_SECRET` | Secret key for signing JWTs |
+| `JWT_EXPIRES_IN` | Token expiration (e.g. `3d`) |
+| `NODE_ENV` | Set to `production` |
+
+To run migrations and seed against the production database:
+
+```bash
+cd backend
+
+# Apply migrations
+DATABASE_URL="<neon-direct-url>" npx prisma migrate deploy
+
+# Seed mock data
+DATABASE_URL="<neon-pooled-url>" DATABASE_URL_UNPOOLED="<neon-direct-url>" npx ts-node --transpile-only prisma/seed.ts
+```
+
+### Self-hosted (Docker)
 
 ```bash
 docker compose up -d --build
