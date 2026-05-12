@@ -57,6 +57,11 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
         (err as NodeJS.ErrnoException).code = 'NOT_FOUND';
         throw err;
     }
+    return prisma.lead.update({
+        where: { id },
+        data: { status },
+        include: { customer: { select: { id: true, name: true, email: true } } },
+    });
 }
 
 export async function deleteLead(id: string) {
@@ -66,4 +71,5 @@ export async function deleteLead(id: string) {
         (err as NodeJS.ErrnoException).code = 'HAS_RELATIONS';
         throw err;
     }
+    return prisma.lead.delete({ where: { id } });
 }
