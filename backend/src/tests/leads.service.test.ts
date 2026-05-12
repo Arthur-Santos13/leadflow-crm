@@ -137,10 +137,21 @@ describe('leads.service', () => {
                 id: 'l1',
                 status: LeadStatus.NEW,
             } as any);
+            const updated = {
+                id: 'l1',
+                status: LeadStatus.QUALIFIED,
+                customer: { id: 'c1', name: 'ACME', email: 'a@b.com' },
+            };
+            vi.mocked(prisma.lead.update).mockResolvedValueOnce(updated as any);
 
-            await expect(
-                leadsService.updateLeadStatus('l1', LeadStatus.QUALIFIED)
-            ).resolves.toBeUndefined();
+            const result = await leadsService.updateLeadStatus('l1', LeadStatus.QUALIFIED);
+
+            expect(result).toEqual(updated);
+            expect(prisma.lead.update).toHaveBeenCalledWith({
+                where: { id: 'l1' },
+                data: { status: LeadStatus.QUALIFIED },
+                include: { customer: { select: { id: true, name: true, email: true } } },
+            });
         });
     });
 
@@ -154,10 +165,14 @@ describe('leads.service', () => {
             ).rejects.toMatchObject({ code: 'HAS_RELATIONS' });
         });
 
-        it('completes without error when the lead has no deals', async () => {
+        it('deletes the lead when it has no deals', async () => {
             vi.mocked(prisma.deal.count).mockResolvedValueOnce(0);
+            vi.mocked(prisma.lead.delete).mockResolvedValueOnce({ id: 'l1' } as any);
 
-            await expect(leadsService.deleteLead('l1')).resolves.toBeUndefined();
+            const result = await leadsService.deleteLead('l1');
+
+            expect(result).toEqual({ id: 'l1' });
+            expect(prisma.lead.delete).toHaveBeenCalledWith({ where: { id: 'l1' } });
         });
     });
 });

@@ -7,6 +7,8 @@ vi.mock('../config/env', () => ({
         JWT_EXPIRES_IN: '7d',
         NODE_ENV: 'test',
         PORT: 3333,
+        DATABASE_URL: 'postgresql://test:test@127.0.0.1:5432/test',
+        DATABASE_URL_UNPOOLED: 'postgresql://test:test@127.0.0.1:5432/test',
     },
 }));
 
