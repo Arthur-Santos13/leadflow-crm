@@ -101,16 +101,30 @@ describe('customers.service', () => {
 
         it('does not throw when the updated email belongs to the same customer', async () => {
             vi.mocked(prisma.customer.findFirst).mockResolvedValueOnce(null);
+            vi.mocked(prisma.customer.update).mockResolvedValueOnce({
+                id: 'c1',
+                email: 'same@b.com',
+            } as any);
 
-            await expect(
-                customersService.updateCustomer('c1', { email: 'same@b.com' })
-            ).resolves.not.toThrow();
+            const result = await customersService.updateCustomer('c1', { email: 'same@b.com' });
+
+            expect(result).toMatchObject({ id: 'c1', email: 'same@b.com' });
+            expect(prisma.customer.update).toHaveBeenCalledWith({
+                where: { id: 'c1' },
+                data: { email: 'same@b.com' },
+            });
         });
 
         it('skips email conflict check when email is not being updated', async () => {
+            vi.mocked(prisma.customer.update).mockResolvedValueOnce({ id: 'c1', name: 'New Name' } as any);
+
             await customersService.updateCustomer('c1', { name: 'New Name' });
 
             expect(prisma.customer.findFirst).not.toHaveBeenCalled();
+            expect(prisma.customer.update).toHaveBeenCalledWith({
+                where: { id: 'c1' },
+                data: { name: 'New Name' },
+            });
         });
     });
 
@@ -143,11 +157,15 @@ describe('customers.service', () => {
             ).rejects.toMatchObject({ code: 'HAS_RELATIONS' });
         });
 
-        it('completes without error when customer has no relations', async () => {
+        it('deletes the customer when there are no relations', async () => {
             vi.mocked(prisma.lead.count).mockResolvedValueOnce(0);
             vi.mocked(prisma.deal.count).mockResolvedValueOnce(0);
+            vi.mocked(prisma.customer.delete).mockResolvedValueOnce({ id: 'c1' } as any);
 
-            await expect(customersService.deleteCustomer('c1')).resolves.toBeUndefined();
+            const result = await customersService.deleteCustomer('c1');
+
+            expect(result).toEqual({ id: 'c1' });
+            expect(prisma.customer.delete).toHaveBeenCalledWith({ where: { id: 'c1' } });
         });
     });
 });

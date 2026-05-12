@@ -7,6 +7,8 @@ vi.mock('../config/env', () => ({
         JWT_EXPIRES_IN: '7d',
         NODE_ENV: 'test',
         PORT: 3333,
+        DATABASE_URL: 'postgresql://test:test@127.0.0.1:5432/test',
+        DATABASE_URL_UNPOOLED: 'postgresql://test:test@127.0.0.1:5432/test',
     },
 }));
 
@@ -14,6 +16,7 @@ vi.mock('../modules/users/users.service');
 
 import app from '../app';
 import * as usersService from '../modules/users/users.service';
+import { prisma } from '../lib/prisma';
 import { adminToken, userToken } from './helpers';
 
 const ADMIN_AUTH = `Bearer ${adminToken}`;
@@ -136,6 +139,14 @@ describe('Users routes – /api/users', () => {
     // -------------------------------------------------------------------------
     describe('GET /api/users/me', () => {
         it('returns 200 with current user for any authenticated user', async () => {
+            vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+                id: 'regular-user-id',
+                name: 'Bob',
+                email: 'bob@b.com',
+                role: 'AGENT',
+                createdAt: new Date('2020-01-01'),
+            } as any);
+
             const res = await request(app)
                 .get('/api/users/me')
                 .set('Authorization', AGENT_AUTH);
