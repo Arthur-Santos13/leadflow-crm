@@ -17,7 +17,7 @@ A full-stack CRM application for managing customers, leads, and sales pipelines.
 |---|---|
 | **Backend** | Node.js, Express, TypeScript, Prisma ORM, PostgreSQL, Zod, JWT, bcryptjs |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, React Router v7, Axios, Lucide React |
-| **Infrastructure** | Docker, Docker Compose, Nginx · Vercel (frontend + API) · Neon (PostgreSQL serverless) |
+| **Infrastructure** | Docker, Docker Compose, Nginx · **Vercel** (frontend + serverless API) · **Neon** (PostgreSQL serverless) |
 | **Testing** | Vitest, Supertest |
 
 ---
@@ -103,9 +103,12 @@ Create `backend/.env`:
 NODE_ENV=development
 PORT=3333
 DATABASE_URL=postgresql://leadflow:leadflow_pass@localhost:5436/leadflow_dev
+DATABASE_URL_UNPOOLED=postgresql://leadflow:leadflow_pass@localhost:5436/leadflow_dev
 JWT_SECRET=change_this_to_a_long_random_string_32chars
 JWT_EXPIRES_IN=3d
 ```
+
+Use the same connection string for `DATABASE_URL` and `DATABASE_URL_UNPOOLED` when you are not using a serverless pooler (local Docker or a single direct Postgres URL). Prisma uses `DATABASE_URL` for queries and `DATABASE_URL_UNPOOLED` as `directUrl` in [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma) (migrations and some introspection paths).
 
 **4. Run database migrations**
 
@@ -144,30 +147,31 @@ npm run dev
 
 ### Production (Vercel + Neon)
 
-The app is deployed on Vercel with a Neon serverless PostgreSQL database.
+The app is deployed on **Vercel** (SPA + API via a single serverless handler — see [`vercel.json`](vercel.json) and [`api/index.ts`](api/index.ts)) with a **Neon** serverless PostgreSQL database ([neon.tech](https://neon.tech)).
 
 - **Frontend + API:** [leadflow-crm-frontend.vercel.app](https://leadflow-crm-frontend.vercel.app)
-- **Database:** [neon.tech](https://neon.tech)
+- **Database:** Neon (set both connection strings from the Neon dashboard)
 
-Required environment variables in Vercel:
+Configure these in the **Vercel** project → Settings → Environment Variables:
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | Neon pooled connection string |
-| `DATABASE_URL_UNPOOLED` | Neon direct connection string (for migrations) |
+| `DATABASE_URL` | Neon **pooled** connection string (runtime queries) |
+| `DATABASE_URL_UNPOOLED` | Neon **direct** connection string (Prisma `directUrl`; migrations; also validated when the API boots) |
 | `JWT_SECRET` | Secret key for signing JWTs |
 | `JWT_EXPIRES_IN` | Token expiration (e.g. `3d`) |
 | `NODE_ENV` | Set to `production` |
+| `CORS_ORIGIN` | Optional. Comma-separated allowed browser origins when the SPA is **not** same-origin as the API (omit for default permissive CORS) |
 
-To run migrations and seed against the production database:
+To run migrations and seed against the Neon database from your machine:
 
 ```bash
 cd backend
 
-# Apply migrations
+# Apply migrations (use Neon direct / non-pooled URL for DATABASE_URL here if Neon recommends it for migrate)
 DATABASE_URL="<neon-direct-url>" npx prisma migrate deploy
 
-# Seed mock data
+# Seed mock data (pooled + direct, as in Vercel)
 DATABASE_URL="<neon-pooled-url>" DATABASE_URL_UNPOOLED="<neon-direct-url>" npx ts-node --transpile-only prisma/seed.ts
 ```
 
@@ -188,11 +192,20 @@ Services:
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DATABASE_URL` | ✅ | — | PostgreSQL connection string |
+| `DATABASE_URL` | ✅ | — | PostgreSQL URL for Prisma Client (`url` in schema). On Neon + Vercel: use the **pooled** string. |
+| `DATABASE_URL_UNPOOLED` | ✅ | — | Direct PostgreSQL URL for Prisma `directUrl` (migrations; validated at API boot). On Neon: use the **direct** string; locally with Docker it can match `DATABASE_URL`. |
 | `JWT_SECRET` | ✅ | — | Secret key for signing JWTs (min 16 chars) |
 | `JWT_EXPIRES_IN` | ❌ | `3d` | JWT expiration time |
 | `PORT` | ❌ | `3333` | Backend server port |
 | `NODE_ENV` | ❌ | `development` | Environment mode |
+| `CORS_ORIGIN` | ❌ | — | Comma-separated list of allowed `Origin` values for browser clients |
+
+**API behaviour (recent changes):**
+
+- **Health:** `GET /health` and `GET /api/health` return JSON status. On **Vercel**, [`vercel.json`](vercel.json) rewrites only `/api/*` to the API, so use **`/api/health`** for uptime checks (otherwise `/health` may return the SPA shell).
+- **Trust proxy:** `trust proxy` is set so rate limiting and IP-aware behaviour work behind Vercel’s edge / a load balancer.
+- **Auth rate limit:** In production, `POST` routes under `/api/auth` are limited (see [`backend/src/modules/auth/auth.routes.ts`](backend/src/modules/auth/auth.routes.ts)); the limiter is **disabled when `NODE_ENV=test`** so Vitest stays stable.
+- **Prisma client:** A single `PrismaClient` is cached on `globalThis` in all environments to reduce connection churn in short-lived serverless invocations.
 
 ---
 
@@ -211,6 +224,8 @@ Authorization: Bearer <token>
 |---|---|---|---|
 | `POST` | `/auth/register` | ❌ | Create account |
 | `POST` | `/auth/login` | ❌ | Login, returns JWT |
+| `POST` | `/auth/forgot-password` | ❌ | Request password reset (non-production may echo token in JSON) |
+| `POST` | `/auth/reset-password` | ❌ | Complete reset with token and new password |
 
 ### Users
 
@@ -239,6 +254,7 @@ Authorization: Bearer <token>
 | `POST` | `/leads` | ✅ | Create |
 | `GET` | `/leads/:id` | ✅ | Get by ID |
 | `PATCH` | `/leads/:id` | ✅ | Update |
+| `PATCH` | `/leads/:id/status` | ✅ | Update status only |
 | `DELETE` | `/leads/:id` | ✅ | Delete |
 
 ### Deals
@@ -264,7 +280,8 @@ Authorization: Bearer <token>
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/health` | Returns server status and timestamp |
+| `GET` | `/health` | Returns server status and timestamp (direct Node server, e.g. Docker) |
+| `GET` | `/api/health` | Same payload; use on **Vercel** (only `/api/*` hits the serverless API) |
 
 ---
 

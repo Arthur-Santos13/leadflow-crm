@@ -48,6 +48,7 @@ services:
       - backend/.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-leadflow}:${POSTGRES_PASSWORD:-leadflow_pass}@postgres:5432/${POSTGRES_DB:-leadflow_dev}
+      DATABASE_URL_UNPOOLED: postgresql://${POSTGRES_USER:-leadflow}:${POSTGRES_PASSWORD:-leadflow_pass}@postgres:5432/${POSTGRES_DB:-leadflow_dev}
     ports:
       - '${BACKEND_PORT:-3333}:3333'
 

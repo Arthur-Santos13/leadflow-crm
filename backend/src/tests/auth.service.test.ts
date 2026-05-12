@@ -6,6 +6,8 @@ vi.mock('../config/env', () => ({
         JWT_SECRET: 'test-super-secret-key-minimum-16',
         JWT_EXPIRES_IN: '7d',
         NODE_ENV: 'test',
+        DATABASE_URL: 'postgresql://test:test@127.0.0.1:5432/test',
+        DATABASE_URL_UNPOOLED: 'postgresql://test:test@127.0.0.1:5432/test',
     },
 }));
 
