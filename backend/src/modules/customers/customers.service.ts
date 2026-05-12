@@ -46,6 +46,7 @@ export async function updateCustomer(id: string, data: UpdateCustomerInput) {
             throw err;
         }
     }
+    return prisma.customer.update({ where: { id }, data });
 }
 
 export async function deleteCustomer(id: string) {
@@ -60,4 +61,5 @@ export async function deleteCustomer(id: string) {
         (err as NodeJS.ErrnoException).code = 'HAS_RELATIONS';
         throw err;
     }
+    return prisma.customer.delete({ where: { id } });
 }
